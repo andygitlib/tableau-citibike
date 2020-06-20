@@ -1,0 +1,1 @@
+jupyter nbconvert --to script citibike_data_import
