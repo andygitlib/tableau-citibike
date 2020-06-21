@@ -9,7 +9,7 @@
 #!usr/bin/env python3
 import os
 import shutil
-from zipfile import ZipFile 
+#from zipfile import ZipFile 
 import pandas as pd
 import numpy as np
 import dateutil #https://www.shanelynn.ie/summarising-aggregation-and-grouping-data-in-python-pandas/
@@ -243,7 +243,8 @@ for i in range(2013,2021):
     # In[28]:
 
 
-    daily_df = citibike_df.groupby(['startdate']).tripduration.agg(['count','sum']).reset_index().set_index(['startdate'])
+    daily_df = citibike_df.groupby(['startdate']).tripduration.agg(['count', 'sum']).reset_index().set_index(['startdate'])
+    daily_df.sort_index(axis = 0) 
     daily_df
 
 
@@ -268,7 +269,8 @@ for i in range(2013,2021):
 
     # Extend analysis tostart hour
     hourly_df = citibike_df.groupby(['startdate','starthour']).tripduration.agg(['count','sum']).reset_index()
-    hourly_df.set_index('startdate', inplace = True) 
+    hourly_df.set_index('startdate', inplace=True)
+    hourly_df.sort_index(axis = 0) 
     hourly_df.head()
 
 
@@ -288,7 +290,7 @@ for i in range(2013,2021):
             hourly_df.to_csv(citibike_hourly_csv, mode='a', header=False)
 
 
-    # ## Analyze customer data
+    # ## Analyze customers data
 
     # In[34]:
 
@@ -326,26 +328,26 @@ for i in range(2013,2021):
     # In[39]:
 
 
-    customer_df = citibike_df.groupby(['startdate','gender','age bracket','usertype']).tripduration.agg(['count']).reset_index()
-    customer_df
+    customers_df = citibike_df.groupby(['startdate','gender','age bracket','usertype']).tripduration.agg(['count']).reset_index()
+    customers_df.sort_index(axis = 0) 
+    customers_df
 
 
     # In[40]:
 
 
-    citibike_customer_csv = os.path.join(cur_dir,'citibike_files','cleansed','citibike_customer.csv')
+    citibike_customers_csv = os.path.join(cur_dir,'citibike_files','cleansed','citibike_customers.csv')
 
 
     # In[41]:
 
 
     if debug_mode == 'n':
-        #customer_df.to_csv(citibike_customer_csv, header=csv_header_ind, mode = 'a')
         #https://stackoverflow.com/questions/30991541/pandas-write-csv-append-vs-write
-        if not os.path.isfile(citibike_customer_csv):
-            customer_df.to_csv(citibike_customer_csv, header='column_names')
+        if not os.path.isfile(citibike_customers_csv):
+            customers_df.to_csv(citibike_customers_csv, header='column_names', index=False)
         else: # else it exists so append without writing the header
-            customer_df.to_csv(citibike_customer_csv, mode='a', header=False)
+            customers_df.to_csv(citibike_customers_csv, mode='a', header=False, index=False)
 
 
     # ## Analyze bike stations
@@ -373,13 +375,14 @@ for i in range(2013,2021):
 
     distinct_stations_df = start_stations_df.append(end_stations_df)
     distinct_stations_df = distinct_stations_df.drop_duplicates(subset=["station id", "station latitude","station longitude","station name"])
-    distinct_stations_df = distinct_stations_df.set_index('station id', inplace = True)
+    distinct_stations_df = distinct_stations_df.set_index('station id', inplace=True)
+    #distinct_stations_df = distinct_stations_df.sort_index(axis = 0) 
 
 
     # In[45]:
 
 
-    citibike_distinct_station_csv = os.path.join(cur_dir,'citibike_files','cleansed','citibike_distinct_station_csv.csv')
+    citibike_distinct_station_csv = os.path.join(cur_dir,'citibike_files','cleansed','citibike_distinct_station.csv')
 
 
     # In[46]:
@@ -387,9 +390,9 @@ for i in range(2013,2021):
 
     if debug_mode == 'n':
         if not os.path.isfile(citibike_distinct_station_csv):
-            start_stations_df.to_csv(citibike_distinct_station_csv, header='column_names')
+            start_stations_df.to_csv(citibike_distinct_station_csv, header='column_names', index=False)
         else: # else it exists so append without writing the header
-            start_stations_df.to_csv(citibike_distinct_station_csv, mode='a', header=False)
+            start_stations_df.to_csv(citibike_distinct_station_csv, mode='a', header=False, index=False)
 
 
     # In[47]:
@@ -397,6 +400,7 @@ for i in range(2013,2021):
 
     start_station_trips_df = citibike_df.groupby(['startdate','start station id']).tripduration.agg(['count']).reset_index()
     start_station_trips_df = start_station_trips_df.set_index(['startdate'])
+    start_station_trips_df = start_station_trips_df.sort_index(axis = 0) 
 
 
     # In[48]:
@@ -410,9 +414,9 @@ for i in range(2013,2021):
 
     if debug_mode == 'n':
         if not os.path.isfile(citibike_start_station_csv):
-            start_stations_df.to_csv(citibike_start_station_csv, header='column_names')
+            start_stations_df.to_csv(citibike_start_station_csv, header='column_names', index=False)
         else: # else it exists so append without writing the header
-            start_stations_df.to_csv(citibike_start_station_csv, mode='a', header=False)
+            start_stations_df.to_csv(citibike_start_station_csv, mode='a', header=False, index=False)
 
 
     # ## Analyze bike equipment
@@ -422,27 +426,29 @@ for i in range(2013,2021):
 
     bike_equipment_df = citibike_df.groupby(['bikeid']).tripduration.agg(['count','sum']).reset_index()
     bike_equipment_df = bike_equipment_df.set_index('bikeid')
+    bike_equipment_df = bike_equipment_df.sort_index(axis = 0)
     bike_equipment_df = pd.DataFrame(bike_equipment_df)
 
 
     # In[51]:
 
 
-    bike_date_df = citibike_df.groupby(['bikeid']).startdate.agg(['min','max']).reset_index()
-    bike_date_df = bike_date_df.set_index(['bikeid'])
-    bike_date_df = pd.DataFrame(bike_date_df)
+    bike_df = citibike_df.groupby(['bikeid']).startdate.agg(['min','max']).reset_index()
+    bike_df = bike_df.set_index(['bikeid'])
+    bike_df = bike_df.sort_index(axis = 0)
+    bike_df = pd.DataFrame(bike_df)
 
 
     # In[52]:
 
 
-    bike_merged_df = pd.merge(bike_date_df, bike_equipment_df, left_index=True, right_index=True)
+    bike_merged_df = pd.merge(bike_df, bike_equipment_df, left_index=True, right_index=True)
 
 
     # In[53]:
 
 
-    citibike_bike_equipment_csv = os.path.join(cur_dir,'citibike_files','cleansed','citibike_bike_date.csv')
+    citibike_bike_equipment_csv = os.path.join(cur_dir,'citibike_files','cleansed','citibike_bikes.csv')
 
 
     # In[54]:
@@ -460,16 +466,16 @@ for i in range(2013,2021):
 # In[55]:
 
 
-    del [[citibike_df,customer_df, distinct_stations_df,start_stations_df,end_stations_df]]
-    del [[bike_equipment_df, bike_date_df, bike_merged_df]]
+    del [[citibike_df,customers_df, distinct_stations_df,start_stations_df,end_stations_df]]
+    del [[bike_equipment_df, bike_df, bike_merged_df]]
     gc.collect()
     citibike_df = []
-    customer_df = []
+    customers_df = []
     distinct_stations_df = []
     start_stations_df = []
     end_stations_df = []
     bike_equipment_df = []
-    bike_date_df = []
+    bike_df = []
     bike_merged_df = []
 
 
